@@ -5,7 +5,7 @@ import fs from "fs"
 
 export default function(isFocusColor: Boolean = false, stream?: fs.WriteStream): (req: Request, res: Response, next: NextFunction) => void {
     if (isFocusColor) {
-        return morgan(function (tokens, req, res) {
+        return morgan((tokens, req, res) => {
             return [
                 chalk.hex('#f78fb3').bold(tokens.date(req, res)),
                 chalk.yellow(tokens['remote-addr'](req, res)),
@@ -16,7 +16,7 @@ export default function(isFocusColor: Boolean = false, stream?: fs.WriteStream):
             ].join('  |  ')
         });
     } else {
-        return morgan(function (tokens, req, res) {
+        return morgan((tokens, req, res) => {
             return [
                 tokens.date(req, res),
                 tokens['remote-addr'](req, res),
