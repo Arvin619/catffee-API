@@ -1,7 +1,8 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+import express, { Application, Request, Response, NextFunction } from "express"
 import dotenv from "dotenv"
-import morgan from "morgan"
-import chalk from "chalk"
+import fs from "fs"
+import path from "path"
+import logger from "./middleware/logger"
 
 dotenv.config()
 
@@ -11,16 +12,7 @@ const port = process.env.PORT || 5000
 
 let isShutdown = false
 
-const morganMiddleware = morgan(function (tokens, req, res) {
-    return [
-        chalk.hex('#f78fb3').bold(tokens.date(req, res)),
-        chalk.yellow(tokens['remote-addr'](req, res)),
-        chalk.hex('#34ace0').bold(tokens.method(req, res)).padStart(38),
-        chalk.hex('#ffb142').bold(tokens.status(req, res)),
-        chalk.hex('#2ed573').bold(tokens['response-time'](req, res) + ' ms').padStart(42),
-        chalk.hex('#ff5252').bold(tokens.url(req, res)),
-    ].join('  |  ')
-});
+let logFile: fs.WriteStream = fs.createWriteStream(path.join(__dirname, "../log", "test.log"), {flags: "w"})
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     if (!isShutdown) {
@@ -30,7 +22,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(503).send("Server is in the process of restarting")
 })
 
-app.use(morganMiddleware)
+// to log file
+app.use(logger(false, logFile))
+
+// to console
+app.use(logger(true))
 
 app.get('/', (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -54,8 +50,10 @@ let server = app.listen(port, () => {
 
 let cleanUp = () => {
     isShutdown = true
+    console.log(`server is shuting down`)
     server.close(() => {
-        console.log(`server is shuting down`)
+        console.log(`server is already shutdown`)
+        logFile.close()
         process.exit()
     })
 
