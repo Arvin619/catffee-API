@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from "express"
+import { Request, Response, NextFunction } from "express"
 import morgan from "morgan"
 import chalk from "chalk"
 import fs from "fs"
